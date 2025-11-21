@@ -1,0 +1,52 @@
+body {
+  font-family: system-ui, Arial;
+  background:#f3f5f8;
+  margin:0;
+  padding:24px;
+  color:#222;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  background:white;
+  padding:24px;
+  border-radius:12px;
+  border:1px solid #ddd;
+}
+
+h1 { font-size:20px; margin-bottom:16px; }
+
+button {
+  padding:10px 14px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  background:white;
+  cursor:pointer;
+  margin-right:8px;
+}
+
+button:disabled { opacity:.5; cursor:not-allowed; }
+
+.box {
+  margin-top:16px;
+  padding:12px;
+  border:1px solid #e3e8ef;
+  border-radius:8px;
+  background:#fafbfd;
+}
+
+.output {
+  min-height:48px;
+  background:white;
+  border-radius:6px;
+  border:1px dashed #d0d7de;
+  padding:8px;
+  margin-top:8px;
+}
+
+.actions {
+  margin-top:12px;
+  display:flex;
+  gap:8px;
+}
