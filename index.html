@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Voice Interview Bot — Sanjai</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+
+<body>
+  <div class="container">
+    <h1>Voice Interview Bot (Gemini Flash-Lite)</h1>
+
+    <button id="startBtn">🎙 Start Recording</button>
+    <button id="stopBtn" disabled>⛔ Stop</button>
+
+    <div class="box">
+      <strong>You said:</strong>
+      <div id="transcript" class="output">—</div>
+    </div>
+
+    <div class="box">
+      <strong>Bot Response:</strong>
+      <div id="response" class="output">—</div>
+
+      <div class="actions">
+        <button id="speakBtn" disabled>🔊 Speak Response</button>
+        <button id="copyBtn" disabled>📄 Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>
