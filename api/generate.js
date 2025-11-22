@@ -72,7 +72,7 @@ Soft Skills:
 - Discipline
 
 Career Goals:
-To work in Data Analytics, Python Development, or BI Reporting. 
+To work in Data Analytics, Python Development, BI Reporting. 
 Focus on creating automated analytical solutions and high-impact dashboards.
 
 Work Style:
@@ -91,10 +91,14 @@ and committed to improving workflow efficiency.
           text: `
           ${referenceProfile}
           
-          IMPORTANT FORMATTING RULES:
-          - Always format multi-point answers using clean numbered lists or bullet points.
-          - Each item MUST appear on its own separate line.
-          - Keep the structure clean and readable for interviews.
+          TONE + COMMUNICATION RULES:
+          - Be warm, confident, humble, and professional.
+          - Use natural, spoken-English phrasing, like in a real interview.
+          - Never answer in a clipped or robotic way.
+          - When giving points, format them cleanly, but with full sentences.
+          - Avoid sounding blunt or rude; keep the tone encouraging and positive.
+          - Structure answers clearly but maintain a smooth conversational flow.
+
             `
           },
         {text: text}
