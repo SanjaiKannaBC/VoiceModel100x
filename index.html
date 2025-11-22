@@ -2,61 +2,87 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Voice Interview Bot — Sanjai</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Voice Agent — Sanjai</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
-
 <body>
-  <div class="wrapper">
+  <div class="app">
 
-    <div class="main-box">
-      <div class="header-row">
-        <h1>Voice Interview Bot (Gemini Flash-Lite)</h1>
-        <div class="header-actions">
-          <button id="clearBtn" title="Clear conversation">🗑 Clear History</button>
+    <!-- LEFT: Voice-first area -->
+    <main class="voice-panel">
+      <div class="top-row">
+        <div class="agent-info">
+          <div class="agent-avatar" id="agentAvatar"></div>
+          <div>
+            <div class="agent-name">Sanjai — Voice Agent</div>
+            <div id="modeIndicator" class="mode-indicator">Mode: warm</div>
+          </div>
+        </div>
+
+        <div class="controls-compact">
+          <label class="small-label">Rate</label>
+          <input id="rateControl" type="range" min="0.6" max="1.6" step="0.05" value="1">
+          <label class="small-label">Pitch</label>
+          <input id="pitchControl" type="range" min="0.6" max="1.6" step="0.05" value="1">
         </div>
       </div>
 
-      <div class="controls">
-        <div class="left-controls">
-          <button id="startBtn">🎙 Start Recording</button>
-          <button id="stopBtn" disabled>⛔ Stop</button>
-        </div>
-        <div class="right-controls">
-          <button id="speakBtn" disabled>🔊 Speak Response</button>
-          <button id="copyBtn" disabled>📄 Copy</button>
-          <button id="stopSpeakBtn" disabled>🛑 Stop Speaking</button>
-
+      <div class="wave-wrap">
+        <div id="wave" class="waveform">
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
         </div>
       </div>
 
-      <div class="section">
-        <label>You said:</label>
-        <div id="transcript" class="output">—</div>
+      <div class="big-mic-area">
+        <button id="micBtn" class="big-mic" title="Start / Stop recording">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z" stroke="#fff" stroke-width="1.2"/></svg>
+        </button>
+        <div id="listeningLabel" class="listening-label">Press mic or say "Start"</div>
       </div>
 
-      <div class="section">
-        <label>Bot Response:</label>
-        <div id="response" class="output">—</div>
+      <div class="voice-output">
+        <div id="liveTranscript" class="live-transcript">—</div>
+        <div id="liveReply" class="live-reply">Bot reply will appear here (auto plays by default).</div>
       </div>
-    </div>
 
-    <div class="suggestions-box">
-      <h3>Suggested questions</h3>
-      <div class="suggestions" id="suggestions">
-        <button class="suggestion">Tell me about your life story</button>
-        <button class="suggestion">What is your #1 superpower?</button>
-        <button class="suggestion">Top 3 areas you'd like to grow in</button>
-        <button class="suggestion">What misconception do coworkers have?</button>
-        <button class="suggestion">How do you push your boundaries?</button>
+      <div class="voice-actions">
+        <button id="speakBtn" disabled>🔊 Speak</button>
+        <button id="stopSpeakBtn" disabled>🛑 Stop Speaking</button>
+        <button id="chimeToggle">🔔 Chime: On</button>
+        <button id="autoSpeakToggle" class="on">🤖 Auto-speak: On</button>
       </div>
-    </div>
+    </main>
 
-    <h2 class="history-title">Conversation History</h2>
-    <div id="history" class="chat-history" aria-live="polite"></div>
+    <!-- RIGHT: Chat history + suggestions -->
+    <aside class="history-panel">
+      <div class="history-header">
+        <h3>Conversation History</h3>
+        <div class="right-actions">
+          <button id="clearBtn">Clear</button>
+        </div>
+      </div>
+
+      <div id="history" class="history"></div>
+
+      <div class="suggestions">
+        <div class="sugg-title">Suggested</div>
+        <div class="sugg-list" id="suggestions">
+          <button class="sugg-btn">Tell me about your background</button>
+          <button class="sugg-btn">What is your #1 superpower?</button>
+          <button class="sugg-btn">Top 3 growth areas</button>
+          <button class="sugg-btn">How do you push your limits?</button>
+          <button class="sugg-btn">Describe your Absolute Broking internship</button>
+        </div>
+      </div>
+    </aside>
 
   </div>
+
+  <audio id="chime" preload="auto">
+    <!-- Optional: replace with a small chime file in public/ if available -->
+    <source src="/chime.mp3" type="audio/mpeg">
+  </audio>
 
   <script src="/script.js"></script>
 </body>
