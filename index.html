@@ -8,39 +8,39 @@
 </head>
 
 <body>
-  <div class="container">
-    <h1>Voice Interview Bot (Gemini Flash-Lite)</h1>
+  <div class="wrapper">
 
-    <button id="startBtn">🎙 Start Recording</button>
-    <button id="stopBtn" disabled>⛔ Stop</button>
+    <div class="main-box">
+      <h1>Voice Interview Bot (Gemini Flash-Lite)</h1>
 
-    <div class="box">
-      <strong>You said:</strong>
-      <div id="transcript" class="output">—</div>
-    </div>
+      <div class="button-row">
+        <button id="startBtn">🎙 Start Recording</button>
+        <button id="stopBtn" disabled>⛔ Stop</button>
+      </div>
 
-    <div class="box">
-      <strong>Bot Response:</strong>
-      <div id="response" class="output">—</div>
+      <div class="section">
+        <label>You said:</label>
+        <div id="transcript" class="output">—</div>
+      </div>
 
-      <div class="actions">
-        <button id="speakBtn" disabled>🔊 Speak Response</button>
-        <button id="copyBtn" disabled>📄 Copy</button>
+      <div class="section">
+        <label>Bot Response:</label>
+        <div id="response" class="output">—</div>
+
+        <div class="button-row">
+          <button id="speakBtn" disabled>🔊 Speak Response</button>
+          <button id="copyBtn" disabled>📄 Copy</button>
+        </div>
       </div>
     </div>
-  </div>
-  <h2 style="margin-top: 32px;">Conversation History</h2>
-<div id="history" style="
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 10px;
-  background: #f9f9f9;
-  border: 1px solid #e3e3e3;
-  max-height: 350px;
-  overflow-y: auto;
-"></div>
 
+    <h2 class="history-title">Conversation History</h2>
+
+    <div id="history" class="history-box"></div>
+
+  </div>
 
   <script src="/script.js"></script>
 </body>
+
 </html>
