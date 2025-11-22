@@ -87,8 +87,20 @@ and committed to improving workflow efficiency.
     contents: [
       {
         parts: [
-          { text: referenceProfile },
-          { text: text }
+          {
+          text: `
+          ${referenceProfile}
+          
+          IMPORTANT FORMATTING RULES:
+          - Always format multi-point answers using clean numbered lists or bullet points.
+          - Each item MUST appear on its own separate line.
+          - Never compress multiple points into a long paragraph.
+          - Keep the structure clean and readable for interviews.
+          - Avoid unnecessary introductions; answer directly.
+            `
+          },
+        {text: text}
+
         ]
       }
     ]
