@@ -1,300 +1,294 @@
-/* ============================================================
-   Voice Interview Bot — Full script.js
-   Includes: Chat bubbles, TTS, Stop Speaking, Suggestions,
-   Typing Indicator, Auto-scroll, Clear History, Avatars
-   ============================================================ */
+/* Hybrid Voice-Agent + Chat script.js
+   - Hybrid UI (voice-first + chat history)
+   - Auto-speak with option toggle
+   - Voice-mode indicator (from backend: modeDetected)
+   - Chime before speaking (toggle)
+   - Pitch & rate controls
+   - Stop Speaking support
+   - Uses /api/generate (Gemini proxy)
+*/
 
 let recognition;
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-// DOM Elements
-const startBtn = document.getElementById("startBtn");
-const stopBtn = document.getElementById("stopBtn");
-const transcriptEl = document.getElementById("transcript");
-const responseEl = document.getElementById("response");
+// DOM
+const micBtn = document.getElementById("micBtn");
+const listeningLabel = document.getElementById("listeningLabel");
+const liveTranscript = document.getElementById("liveTranscript");
+const liveReply = document.getElementById("liveReply");
 const speakBtn = document.getElementById("speakBtn");
 const stopSpeakBtn = document.getElementById("stopSpeakBtn");
-const copyBtn = document.getElementById("copyBtn");
-const historyContainer = document.getElementById("history");
-const suggestions = document.getElementById("suggestions");
+const chimeToggle = document.getElementById("chimeToggle");
+const autoSpeakToggle = document.getElementById("autoSpeakToggle");
+const chimeAudio = document.getElementById("chime");
+const historyEl = document.getElementById("history");
+const suggestionsEl = document.getElementById("suggestions");
 const clearBtn = document.getElementById("clearBtn");
+const modeIndicator = document.getElementById("modeIndicator");
+const rateControl = document.getElementById("rateControl");
+const pitchControl = document.getElementById("pitchControl");
 
-if (!SpeechRecognition) {
-    alert("Speech Recognition not supported. Use Chrome or Edge.");
-}
-
-recognition = new SpeechRecognition();
-recognition.lang = "en-IN";
-recognition.interimResults = false;
-
+// state
 let lastBotReply = "";
+let autoSpeak = true;
+let chimeOn = true;
+let utterance = null;
+let isListening = false;
 let isThinking = false;
 
-// Avatars (PDF shows initials SKB)
+// avatar path (uses uploaded resume local path as requested)
 const BOT_AVATAR = "/mnt/data/Sanjai Kanna B C.pdf";
-const USER_AVATAR =
-  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><rect width='44' height='44' fill='%23e6eef6' rx='8'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='18' fill='%23112'>You</text></svg>";
+const USER_AVATAR_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><rect width='44' height='44' fill='%23eef2f7' rx='8'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='13' fill='%23112'>YOU</text></svg>";
 
-/* ======================
-      Start / Stop STT
-   ====================== */
+// initialize avatar visual
+document.getElementById("agentAvatar").textContent = "SKB"; // fallback initials
 
-startBtn.onclick = () => {
-    try {
-        recognition.start();
-        transcriptEl.textContent = "Listening...";
-        responseEl.textContent = "—";
-        startBtn.disabled = true;
-        stopBtn.disabled = false;
-    } catch {}
-};
+// Speech Recognition setup
+if (!SpeechRecognition) {
+  alert("SpeechRecognition not supported. Use Chrome or Edge.");
+} else {
+  recognition = new SpeechRecognition();
+  recognition.lang = "en-IN";
+  recognition.interimResults = false;
+  recognition.continuous = false;
+}
 
-stopBtn.onclick = () => {
-    recognition.stop();
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
-};
-
-recognition.onresult = async (event) => {
-    const userText = event.results[0][0].transcript.trim();
-    transcriptEl.textContent = userText;
-    await askGemini(userText);
-};
-
-recognition.onerror = (e) => {
-    transcriptEl.textContent = "Error: " + e.error;
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
-};
-
-/* ======================
-      Suggested Questions
-   ====================== */
-
-suggestions.addEventListener("click", async (ev) => {
-    if (!ev.target.classList.contains("suggestion")) return;
-
-    const q = ev.target.textContent.trim();
-    transcriptEl.textContent = q;
-    await askGemini(q);
+// mic button toggles listening
+micBtn.addEventListener("click", () => {
+  if (!recognition) return;
+  if (isListening) {
+    stopListening();
+  } else {
+    startListening();
+  }
 });
 
-/* ======================
-        Clear History
-   ====================== */
+function startListening() {
+  try {
+    recognition.start();
+    isListening = true;
+    listeningLabel.textContent = "Listening…";
+    micBtn.classList.add("listening");
+    // stop any speech while starting to listen
+    window.speechSynthesis.cancel();
+  } catch (e) {
+    console.warn(e);
+  }
+}
 
+function stopListening() {
+  if (!recognition) return;
+  recognition.stop();
+  isListening = false;
+  listeningLabel.textContent = "Press mic or say \"Start\"";
+  micBtn.classList.remove("listening");
+}
+
+// recognition events
+if (recognition) {
+  recognition.onresult = async (ev) => {
+    const text = ev.results[0][0].transcript.trim();
+    liveTranscript.textContent = text;
+    stopListening();
+    await askAgent(text);
+  };
+
+  recognition.onerror = (ev) => {
+    liveTranscript.textContent = "Recognition error: " + ev.error;
+    stopListening();
+  };
+
+  recognition.onend = () => {
+    isListening = false;
+    micBtn.classList.remove("listening");
+    listeningLabel.textContent = "Press mic or say \"Start\"";
+  };
+
+  // If the user starts speaking while the bot is speaking: stop the TTS
+  recognition.onstart = () => {
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+      stopSpeakBtn.disabled = true;
+    }
+  };
+}
+
+// buttons: chime, autoSpeak
+chimeToggle.addEventListener("click", () => {
+  chimeOn = !chimeOn;
+  chimeToggle.textContent = chimeOn ? "🔔 Chime: On" : "🔕 Chime: Off";
+});
+
+autoSpeakToggle.addEventListener("click", () => {
+  autoSpeak = !autoSpeak;
+  autoSpeakToggle.classList.toggle("on", autoSpeak);
+  autoSpeakToggle.textContent = autoSpeak ? "🤖 Auto-speak: On" : "🤖 Auto-speak: Off";
+});
+
+// speak and stop speaking
+speakBtn.addEventListener("click", () => speakLastReply());
+stopSpeakBtn.addEventListener("click", () => {
+  speechSynthesis.cancel();
+  stopSpeakBtn.disabled = true;
+});
+
+// suggestions click
+suggestionsEl.addEventListener("click", (ev) => {
+  if (!ev.target.classList.contains("sugg-btn")) return;
+  const q = ev.target.textContent.trim();
+  liveTranscript.textContent = q;
+  askAgent(q);
+});
+
+// clear
 clearBtn.addEventListener("click", () => {
-    historyContainer.innerHTML = "";
-    responseEl.textContent = "—";
-    lastBotReply = "";
-    speakBtn.disabled = true;
-    stopSpeakBtn.disabled = true;
-    copyBtn.disabled = true;
+  historyEl.innerHTML = "";
+  liveReply.textContent = "Bot reply will appear here (auto plays by default).";
+  lastBotReply = "";
+  speakBtn.disabled = true;
+  stopSpeakBtn.disabled = true;
 });
 
-/* ======================
-        Ask Gemini
-   ====================== */
+// pitch/rate controls update nothing immediate; used at speak time
 
-async function askGemini(userText) {
-    if (isThinking) return;
-    isThinking = true;
+// askAgent: calls backend /api/generate
+async function askAgent(text) {
+  if (isThinking) return;
+  isThinking = true;
+  liveReply.textContent = "Thinking…";
+  appendHistoryEntry({ role: "user", text });
 
-    responseEl.textContent = "Thinking...";
-    speakBtn.disabled = true;
+  // show typing (small visual)
+  const typingId = showTyping();
+
+  try {
+    const r = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+    const json = await r.json();
+    const reply = (json && json.reply) ? json.reply : "I didn't catch that. Could you repeat?";
+    const mode = json.modeDetected || (json.mode || "warm");
+
+    // update UI
+    lastBotReply = reply;
+    modeIndicator.textContent = `Mode: ${mode}`;
+    liveReply.textContent = reply;
+    appendHistoryEntry({ role: "bot", text: reply });
+
+    removeTyping(typingId);
+    isThinking = false;
+    speakBtn.disabled = false;
     stopSpeakBtn.disabled = true;
-    copyBtn.disabled = true;
 
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
-
-    appendUserBubble(userText);
-
-    const typingId = showTypingIndicator();
-
-    try {
-        const r = await fetch("/api/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: userText }),
-        });
-
-        const data = await r.json();
-        const botReply = data.reply || "No reply received.";
-
-        lastBotReply = botReply;
-
-        removeTypingIndicator(typingId);
-        appendBotBubble(botReply);
-
-        responseEl.textContent = botReply;
-
-        speakBtn.disabled = false;
-        copyBtn.disabled = false;
-
-        stopSpeakBtn.disabled = true;
-
-        isThinking = false;
-    } catch (err) {
-        removeTypingIndicator(typingId);
-        responseEl.textContent = "Error: " + err.toString();
-        isThinking = false;
+    // play chime and auto-speak
+    if (chimeOn && chimeAudio && chimeAudio.play) {
+      try { chimeAudio.currentTime = 0; chimeAudio.play().catch(()=>{}); } catch(e) {}
     }
-}
-
-/* ======================
-      Chat Bubbles
-   ====================== */
-
-function createAvatar(src, textFallback = "SKB") {
-    const d = document.createElement("div");
-    d.className = "avatar";
-
-    if (src.endsWith(".pdf")) {
-        d.textContent = textFallback;
-        d.style.background = "#d5ebf8";
-        d.style.display = "flex";
-        d.style.alignItems = "center";
-        d.style.justifyContent = "center";
-        d.style.fontWeight = "700";
-        d.style.color = "#0f2b3b";
-        d.style.fontSize = "14px";
-    } else {
-        d.style.backgroundImage = `url('${src}')`;
+    if (autoSpeak) {
+      setTimeout(() => speakLastReply(), 220); // short delay for chime/timing
     }
-    return d;
+  } catch (err) {
+    removeTyping(typingId);
+    isThinking = false;
+    liveReply.textContent = "Error: " + (err?.toString?.() || String(err));
+  }
 }
 
-function appendUserBubble(text) {
-    const div = document.createElement("div");
-    div.className = "chat-item chat-user";
+// history helpers
+function appendHistoryEntry({ role, text }) {
+  const item = document.createElement("div");
+  item.className = "history-item " + (role === "user" ? "user" : "bot");
 
-    const avatar = createAvatar(USER_AVATAR, "YOU");
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  if (role === "bot") {
+    // if source is a PDF path, show initials
+    avatar.textContent = "SKB";
+  } else {
+    avatar.style.backgroundImage = `url('${USER_AVATAR_SVG}')`;
+  }
 
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    bubble.innerHTML = `<span class="chat-label">You</span>${escapeHtml(text)}`;
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  const label = document.createElement("div");
+  label.className = "chat-label";
+  label.textContent = role === "user" ? "You" : "Sanjai";
+  bubble.appendChild(label);
 
-    const spacer = document.createElement("div");
+  const content = document.createElement("div");
+  content.innerHTML = escapeHtml(text).replace(/\n/g, "<br>");
+  bubble.appendChild(content);
 
-    div.appendChild(spacer);
-    div.appendChild(bubble);
-    div.appendChild(avatar);
-
-    historyContainer.appendChild(div);
-    autoScroll();
-}
-
-function appendBotBubble(text) {
-    const div = document.createElement("div");
-    div.className = "chat-item chat-bot";
-
-    const avatar = createAvatar(BOT_AVATAR, "SKB");
-
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    bubble.innerHTML = `<span class="chat-label">Sanjai</span>${escapeHtml(text)}`;
-
-    div.appendChild(avatar);
-    div.appendChild(bubble);
-
-    historyContainer.appendChild(div);
-    autoScroll();
-}
-
-/* ======================
-      Typing Indicator
-   ====================== */
-
-let typingCounter = 0;
-
-function showTypingIndicator() {
-    const id = `typing-${++typingCounter}`;
-
-    const item = document.createElement("div");
-    item.className = "chat-item chat-bot";
-    item.id = id;
-
-    const avatar = createAvatar(BOT_AVATAR, "SKB");
-
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    bubble.innerHTML = `
-        <span class="chat-label">Sanjai</span>
-        <div class="typing">Sanjai is typing<span class="dots">...</span></div>
-    `;
-
+  if (role === "user") {
+    item.appendChild(document.createElement("div")); // spacer
+    item.appendChild(bubble);
+    item.appendChild(avatar);
+  } else {
     item.appendChild(avatar);
     item.appendChild(bubble);
+  }
 
-    historyContainer.appendChild(item);
-    autoScroll();
-
-    return id;
+  historyEl.appendChild(item);
+  // auto-scroll
+  historyEl.scrollTop = historyEl.scrollHeight;
 }
 
-function removeTypingIndicator(id) {
-    const el = document.getElementById(id);
-    if (el) el.remove();
+// typing indicator
+let typingCounter = 0;
+function showTyping() {
+  const id = `typing-${++typingCounter}`;
+  const el = document.createElement("div");
+  el.id = id;
+  el.className = "history-item bot";
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = "SKB";
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  const label = document.createElement("div");
+  label.className = "chat-label";
+  label.textContent = "Sanjai";
+  const typing = document.createElement("div");
+  typing.className = "typing";
+  typing.textContent = "Sanjai is thinking…";
+  bubble.appendChild(label);
+  bubble.appendChild(typing);
+
+  el.appendChild(avatar);
+  el.appendChild(bubble);
+  historyEl.appendChild(el);
+  historyEl.scrollTop = historyEl.scrollHeight;
+  return id;
+}
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
 }
 
-/* ======================
-         Auto Scroll
-   ====================== */
+// speaking
+function speakLastReply() {
+  if (!lastBotReply) return;
+  // cancel any current
+  speechSynthesis.cancel();
+  utterance = new SpeechSynthesisUtterance(lastBotReply);
+  utterance.lang = "en-US";
+  utterance.rate = parseFloat(rateControl.value || 1);
+  utterance.pitch = parseFloat(pitchControl.value || 1);
+  // add small filler handling: keep text as is because backend already included natural pauses
+  speechSynthesis.speak(utterance);
+  stopSpeakBtn.disabled = false;
 
-function autoScroll() {
-    historyContainer.scrollTop = historyContainer.scrollHeight;
-}
-
-/* ======================
-   Speak / Stop Speaking
-   ====================== */
-
-let utterance;
-
-speakBtn.onclick = () => {
-    if (!lastBotReply) return;
-
-    speechSynthesis.cancel();
-
-    utterance = new SpeechSynthesisUtterance(lastBotReply);
-    utterance.lang = "en-US";
-
-    speechSynthesis.speak(utterance);
-
-    stopSpeakBtn.disabled = false;
-
-    utterance.onend = () => {
-        stopSpeakBtn.disabled = true;
-    };
-};
-
-stopSpeakBtn.onclick = () => {
-    speechSynthesis.cancel();
+  utterance.onend = () => {
     stopSpeakBtn.disabled = true;
-};
+  };
+  utterance.onerror = () => {
+    stopSpeakBtn.disabled = true;
+  };
+}
 
-/* ======================
-         Copy Text
-   ====================== */
-
-copyBtn.onclick = async () => {
-    if (!lastBotReply) return;
-
-    await navigator.clipboard.writeText(lastBotReply);
-
-    copyBtn.textContent = "Copied!";
-    setTimeout(() => (copyBtn.textContent = "📄 Copy"), 1200);
-};
-
-/* ======================
-     HTML Escape Utility
-   ====================== */
-
-function escapeHtml(str) {
-    return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;");
+// small utility: escape and basic formatting
+function escapeHtml(s){
+  return String(s || "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 }
