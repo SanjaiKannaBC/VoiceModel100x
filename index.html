@@ -11,11 +11,22 @@
   <div class="wrapper">
 
     <div class="main-box">
-      <h1>Voice Interview Bot (Gemini Flash-Lite)</h1>
+      <div class="header-row">
+        <h1>Voice Interview Bot (Gemini Flash-Lite)</h1>
+        <div class="header-actions">
+          <button id="clearBtn" title="Clear conversation">🗑 Clear History</button>
+        </div>
+      </div>
 
-      <div class="button-row">
-        <button id="startBtn">🎙 Start Recording</button>
-        <button id="stopBtn" disabled>⛔ Stop</button>
+      <div class="controls">
+        <div class="left-controls">
+          <button id="startBtn">🎙 Start Recording</button>
+          <button id="stopBtn" disabled>⛔ Stop</button>
+        </div>
+        <div class="right-controls">
+          <button id="speakBtn" disabled>🔊 Speak Response</button>
+          <button id="copyBtn" disabled>📄 Copy</button>
+        </div>
       </div>
 
       <div class="section">
@@ -26,22 +37,25 @@
       <div class="section">
         <label>Bot Response:</label>
         <div id="response" class="output">—</div>
+      </div>
+    </div>
 
-        <div class="button-row">
-          <button id="speakBtn" disabled>🔊 Speak Response</button>
-          <button id="copyBtn" disabled>📄 Copy</button>
-        </div>
+    <div class="suggestions-box">
+      <h3>Suggested questions</h3>
+      <div class="suggestions" id="suggestions">
+        <button class="suggestion">Tell me about your life story</button>
+        <button class="suggestion">What is your #1 superpower?</button>
+        <button class="suggestion">Top 3 areas you'd like to grow in</button>
+        <button class="suggestion">What misconception do coworkers have?</button>
+        <button class="suggestion">How do you push your boundaries?</button>
       </div>
     </div>
 
     <h2 class="history-title">Conversation History</h2>
-
-    <div id="history" class="chat-history"></div>
+    <div id="history" class="chat-history" aria-live="polite"></div>
 
   </div>
 
   <script src="/script.js"></script>
 </body>
-
-
 </html>
