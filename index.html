@@ -1,88 +1,89 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sanjai — Voice Agent</title>
-
-  <!-- Your existing CSS file -->
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Voice Agent — Sanjai</title>
+  <link rel="stylesheet" href="/style.css" />
 </head>
-
 <body>
+  <div class="app">
 
-  <div class="container">
+    <!-- LEFT: Voice-first area -->
+    <main class="voice-panel">
+      <div class="top-row">
+        <div class="agent-info">
+          <div class="agent-avatar" id="agentAvatar"></div>
+          <div>
+            <div class="agent-name">Sanjai — Voice Agent</div>
+            <div id="modeIndicator" class="mode-indicator">Mode: warm</div>
+          </div>
+        </div>
 
-    <!-- LEFT SIDE: Voice Agent Section -->
-    <div class="voice-section">
-
-      <!-- Header -->
-      <div class="agent-header">
-        <div class="avatar-circle">SKB</div>
-        <div>
-          <h2 class="agent-title">Sanjai — Voice Agent</h2>
-          <p class="mode-text">Mode: <span id="voiceMode">warm</span></p>
+        <div class="controls-compact">
+          <label class="small-label">Rate</label>
+          <input id="rateControl" type="range" min="0.6" max="1.6" step="0.05" value="1">
+          <label class="small-label">Pitch</label>
+          <input id="pitchControl" type="range" min="0.6" max="1.6" step="0.05" value="1">
         </div>
       </div>
 
-      <!-- Waveform Indicator -->
-      <div id="waveform" class="waveform">
-        <span></span><span></span><span></span><span></span><span></span>
+      <div class="wave-wrap">
+        <div id="wave" class="waveform">
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
       </div>
 
-      <!-- Mic Button -->
-      <div class="mic-container">
-        <button id="micButton" class="mic-button">0</button>
+      <div class="big-mic-area">
+        <button id="micBtn" class="big-mic" title="Start / Stop recording">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z" stroke="#fff" stroke-width="1.2"/></svg>
+        </button>
+        <div id="listeningLabel" class="listening-label">Press mic or say "Start"</div>
       </div>
 
-      <!-- (Removed the “Press mic or say Start”) -->
-
-      <!-- User Query Display -->
-      <div id="userTextDisplay" class="user-text-display">You said:</div>
-
-      <!-- Bot Response -->
-      <div class="response-box">
-        <textarea id="botResponse" readonly placeholder="Bot response will appear here..."></textarea>
+      <div class="voice-output">
+        <div id="liveTranscript" class="live-transcript">—</div>
+        <div id="liveReply" class="live-reply">Bot reply will appear here (auto plays by default).</div>
       </div>
 
-      <!-- Buttons Row -->
-      <div class="button-row">
-        <button id="speakBtn">Speak</button>
-        <button id="stopSpeakBtn" disabled>Stop Speaking</button>
-
-        <button id="chimeToggle" class="toggle-btn">🔔 Chime: On</button>
-        <button id="autoSpeakToggle" class="toggle-btn">🔊 Auto-speak: On</button>
+      <div class="voice-actions">
+        <button id="speakBtn" disabled>🔊 Speak</button>
+        <button id="stopSpeakBtn" disabled>🛑 Stop Speaking</button>
+        <button id="chimeToggle">🔔 Chime: On</button>
+        <button id="autoSpeakToggle" class="on">🤖 Auto-speak: On</button>
       </div>
-    </div>
+    </main>
 
-
-    <!-- RIGHT SIDE: Conversation History -->
-    <div class="history-section">
+    <!-- RIGHT: Chat history + suggestions -->
+    <aside class="history-panel">
       <div class="history-header">
-        <h2>Conversation History</h2>
-        <button id="clearHistory">Clear</button>
+        <h3>Conversation History</h3>
+        <div class="right-actions">
+          <button id="clearBtn">Clear</button>
+        </div>
       </div>
 
-      <div id="historyContainer" class="history-container">
-        <!-- Filled dynamically -->
-      </div>
+      <div id="history" class="history"></div>
 
-      <!-- Suggested Questions -->
-      <div class="suggested-section">
-        <h3>Suggested</h3>
-        <button class="suggested-btn">Tell me about your background</button>
-        <button class="suggested-btn">What is your #1 superpower?</button>
-        <button class="suggested-btn">Top 3 growth areas</button>
-        <button class="suggested-btn">How do you push your boundaries?</button>
-        <button class="suggested-btn">What’s a misconception about you?</button>
+      <div class="suggestions">
+        <div class="sugg-title">Suggested</div>
+        <div class="sugg-list" id="suggestions">
+          <button class="sugg-btn">Tell me about your background</button>
+          <button class="sugg-btn">What is your #1 superpower?</button>
+          <button class="sugg-btn">Top 3 growth areas</button>
+          <button class="sugg-btn">How do you push your limits?</button>
+          <button class="sugg-btn">Describe your Absolute Broking internship</button>
+        </div>
       </div>
-
-    </div>
+    </aside>
 
   </div>
 
-  <!-- Your existing JS -->
-  <script src="script.js"></script>
+  <audio id="chime" preload="auto">
+    <!-- Optional: replace with a small chime file in public/ if available -->
+    <source src="/chime.mp3" type="audio/mpeg">
+  </audio>
 
+  <script src="/script.js"></script>
 </body>
 </html>
