@@ -8,10 +8,9 @@ const responseEl = document.getElementById("response");
 const speakBtn = document.getElementById("speakBtn");
 const copyBtn = document.getElementById("copyBtn");
 
-// NEW: Conversation history container
-let historyContainer = document.createElement("div");
-historyContainer.style.marginTop = "20px";
-document.querySelector(".container").appendChild(historyContainer);
+// NEW: Container for conversation history
+const historyContainer = document.getElementById("history");
+let lastBotReply = "";  // NEW: Store ONLY the latest reply for TTS
 
 if (!SpeechRecognition) {
   alert("Speech Recognition not supported. Use Chrome.");
@@ -65,28 +64,25 @@ async function askGemini(userText) {
     const r = await fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: userText })
+      body: JSON.stringify({ text: userText }),
     });
 
     const data = await r.json();
     const botReply = data.reply || "No reply.";
 
     responseEl.textContent = botReply;
+    lastBotReply = botReply; // NEW: Store ONLY this
 
-    // Enable buttons
     speakBtn.disabled = false;
     copyBtn.disabled = false;
 
-    // Fix UI glitch: reset Start/Stop buttons
     startBtn.disabled = false;
     stopBtn.disabled = true;
 
-    // Add to conversation history
     appendToHistory(userText, botReply);
 
   } catch (err) {
     responseEl.textContent = "Error: " + err.toString();
-
     startBtn.disabled = false;
     stopBtn.disabled = true;
   }
@@ -96,25 +92,20 @@ async function askGemini(userText) {
 
 function appendToHistory(question, answer) {
   const block = document.createElement("div");
-  block.style.marginBottom = "16px";
-  block.style.padding = "12px";
-  block.style.border = "1px solid #ddd";
-  block.style.borderRadius = "8px";
-  block.style.background = "#fafafa";
+  block.className = "history-item";
 
   block.innerHTML = `
-    <div><strong>Q:</strong> ${question}</div>
-    <div style="margin-top:6px;"><strong>A:</strong> ${answer}</div>
+    <div class="q"><strong>You:</strong> ${question}</div>
+    <div class="a"><strong>Sanjai:</strong> ${answer}</div>
   `;
 
   historyContainer.appendChild(block);
 }
 
-/* ---------------- SPEAK RESPONSE ---------------- */
+/* ---------------- FIXED TTS — SPEAK ONLY LATEST BOT REPLY ---------------- */
 
 speakBtn.onclick = () => {
-  const t = responseEl.textContent;
-  const u = new SpeechSynthesisUtterance(t);
+  const u = new SpeechSynthesisUtterance(lastBotReply);
   u.lang = "en-US";
   speechSynthesis.speak(u);
 };
@@ -122,7 +113,7 @@ speakBtn.onclick = () => {
 /* ---------------- COPY ---------------- */
 
 copyBtn.onclick = async () => {
-  await navigator.clipboard.writeText(responseEl.textContent);
+  await navigator.clipboard.writeText(lastBotReply);
   copyBtn.textContent = "Copied";
   setTimeout(() => (copyBtn.textContent = "📄 Copy"), 1200);
 };
