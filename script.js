@@ -91,15 +91,19 @@ async function askGemini(userText) {
 /* ---------------- (NEW) CONVERSATION HISTORY ---------------- */
 
 function appendToHistory(question, answer) {
-  const block = document.createElement("div");
-  block.className = "history-item";
+  const userBubble = document.createElement("div");
+  userBubble.className = "chat-user";
+  userBubble.innerHTML = `<span class="chat-label">You:</span><br>${question}`;
 
-  block.innerHTML = `
-    <div class="q"><strong>You:</strong> ${question}</div>
-    <div class="a"><strong>Sanjai:</strong> ${answer}</div>
-  `;
+  const botBubble = document.createElement("div");
+  botBubble.className = "chat-bot";
+  botBubble.innerHTML = `<span class="chat-label">Sanjai:</span><br>${answer}`;
 
-  historyContainer.appendChild(block);
+  historyContainer.appendChild(userBubble);
+  historyContainer.appendChild(botBubble);
+
+  // Auto-scroll to bottom
+  historyContainer.scrollTop = historyContainer.scrollHeight;
 }
 
 /* ---------------- FIXED TTS — SPEAK ONLY LATEST BOT REPLY ---------------- */
