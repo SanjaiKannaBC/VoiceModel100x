@@ -53,7 +53,7 @@ Internship Experience:
 Education:
 - B.S. in Data Science & Applications — IIT Madras (Expected 2028)
   Scored 100% in Python. Completed Foundation, now in Diploma level.
-- B.Com (Computer Applications) — Loyola College, CGPA 9.0
+- B.Com (Computer Applications) — Loyola College, CGPA 8.6
   Editor, LIAC Magazine (2024, 2025)
   Organizing Committee, Matrix Tech Fest (2025)
 
@@ -94,9 +94,7 @@ and committed to improving workflow efficiency.
           IMPORTANT FORMATTING RULES:
           - Always format multi-point answers using clean numbered lists or bullet points.
           - Each item MUST appear on its own separate line.
-          - Never compress multiple points into a long paragraph.
           - Keep the structure clean and readable for interviews.
-          - Avoid unnecessary introductions; answer directly.
             `
           },
         {text: text}
